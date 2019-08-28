@@ -150,14 +150,14 @@ func (d *rbdDriver) CreateRbdImage(imageName string, size uint64, order int, fst
 
 
 	// map to kernel to let initialize fs
-	err = d.mapImage(imageName)
+	device, err := d.mapImage(imageName)
 	if err != nil {
 		defer d.removeRbdImage(imageName)
 		return err
 	}
 
+	logrus.Debugf("volume-rbd Name=%s Message=rbd device '%s'", imageName, device)
 	// make the filesystem (give it some time)
-	device := d.getTheDevice(imageName)
 	_, err = shWithTimeout(5 * time.Minute, mkfs, mkfsOptions, device)
 	if err != nil {
 		d.unmapImage(imageName)
@@ -204,7 +204,7 @@ func (d *rbdDriver) MountRbdImage(imageName string) (err error, mountpoint strin
 
 
 
-	err = d.mapImage(imageName)
+	_, err = d.mapImage(imageName)
 	if err != nil {
 		return fmt.Errorf("unable to map: %s", imageName, err), ""
 	}

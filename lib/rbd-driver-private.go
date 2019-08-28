@@ -9,12 +9,12 @@ import (
 )
 
 
-func (d *rbdDriver) mapImage(imageName string) error {
+func (d *rbdDriver) mapImage(imageName string) (string, error) {
 	logrus.Debugf("volume-rbd Name=%s Message=rbd map", imageName)
 
-	_, err := d.rbdsh("map", imageName)
+	device, err := d.rbdsh("map", imageName, "-p", d.conf["pool"])
 
-	return err
+	return device, err
 }
 
 
@@ -90,7 +90,7 @@ func (d *rbdDriver) removeRbdImage(imageName string) error {
 // rbdsh will call rbd with the given command arguments, also adding config, user and pool flags
 func (d *rbdDriver) rbdsh(command string, args ...string) (string, error) {
 
-	args = append([]string{"--cluster", d.conf["cluster"], "--pool", d.conf["pool"], "--name", d.conf["keyring_user"], command}, args...)
+	args = append([]string{"--cluster", d.conf["cluster"], "--name", d.conf["keyring_user"], command}, args...)
 
 	return shWithDefaultTimeout("rbd", args...)
 }
